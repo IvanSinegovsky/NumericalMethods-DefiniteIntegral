@@ -1,0 +1,4 @@
+﻿  DefiniteIntegral.cpp
+C:\Users\Пользователь\source\repos\DefiniteIntegral\DefiniteIntegral\DefiniteIntegral.cpp(106,20): warning C4101: y: неиспользованная локальная переменная
+C:\Users\Пользователь\source\repos\DefiniteIntegral\DefiniteIntegral\DefiniteIntegral.cpp(106,17): warning C4101: x: неиспользованная локальная переменная
+  DefiniteIntegral.vcxproj -> C:\Users\Пользователь\source\repos\DefiniteIntegral\Debug\DefiniteIntegral.exe

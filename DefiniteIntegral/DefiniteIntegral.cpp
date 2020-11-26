@@ -1,123 +1,138 @@
-﻿#define _USE_MATH_DEFINES
-#include <math.h>
-#include <iostream>
-
+﻿#include <iostream>
 using namespace std;
 
-double function(double x);
-double function2(double x, double y);
-double ITrap(double x1, double xn, double e);
-double ISimp(double x1, double xn, double e);
-double ISimpKU(double x0, double xn, double y0, double yn, double e);
+double f1(const double x);
+double f2(const double x, const double y);
+double trapezoidMethod(const double a, const double b);
+double simpsonMethod(const double a, const double b);
+double cubSimpsonMethod(const double a, const double b, const double c, const double d);
 
-void main()
+int main()
 {
-	double x0 = 0, xn = 1.234, e1 = 10e-5, e2 = 10e-6, I, xd0 = 0, xdn = 4, yd0 = 0, ydm = 2;
-	int n = 2;
+	setlocale(LC_ALL, "ru");
 
-	cout << " metod trapeciu :" << endl;
-	I = ITrap(x0, xn, e1);
-	cout << " I = " << I << endl << endl;
-
-	I = ITrap(x0, xn, e2);
-	cout << " I = " << I << endl << endl;
-
-	cout << " metod Simpsona :" << endl;
-	I = ISimp(x0, xn, e1);
-	cout << " I = " << I << endl << endl;
-
-	I = ISimp(x0, xn, e2);
-	cout << " I = " << I << endl << endl;
-
-	cout << " dvoinoi integral :" << endl;
-	I = ISimpKU(xd0, xdn, yd0, ydm, e1);
-	cout << " I = " << I << endl << endl;
+	double a = 0;
+	double b = 1;
+	cout << "Значение интеграла по формуле трапеций = " 
+		<< trapezoidMethod(a, b) << "\n\n";
+	cout << "Значение интеграла по формуле Симпсона = " 
+		<< simpsonMethod(a, b) << "\n\n";
+	cout << "Значение интеграла по кубатурной формуле Симпсона = " 
+		<< cubSimpsonMethod(-1.0, 1.0, -1.0, 1.0) << endl;
+	return 0;
 }
 
-double function2(double x, double y)
+double trapezoidMethod(const double a, const double b)
 {
-	return pow(x, 2) / (1 + pow(y, 2));
-}
-
-double function(double x)
-{
-	return pow(sin(x), 2) / pow((1 + pow(x, 3)), 0.5);
-}
-
-double ISimpKU(double x0, double xn, double y0, double ym, double e)
-{
-	int n = 5, m = 5;
-	double  S = 0, x = x0, y = y0;
-	double hx = (xn - x0) / n, hy = (ym - y0) / m;
-
-	for (int i = 0; i < n; i++)
-	{
-		for (int j = 0; j < m; j++)
-		{
-			S += (function2((x + 2 * i * hx), (y + 2 * j * hy)) + 4 * function2((x + (2 * i + 1) * hx), y + 2 * j * hy) + 4 * function2(x + 2 * i * hx, y + (2 * j + 1) * hy) + function2(x + (2 * i + 2) * hx, y + 2 * j * hy) + 16 * function2(x + (2 * i + 1) * hx, y + (2 * j + 1) * hy) + 4 * function2(x + (2 * i + 2) * hx, y + (2 * j + 1) * hy) + 4 * function2(x + (2 * i + 1) * hx, y + (2 * j + 2) * hy) + 4 * function2(x + 2 * i * hx, y + (2 * j + 1) * hy) + function2(x + 2 * i * hx, y + (2 * j + 2) * hy) + function2(x + (2 * i + 2) * hx, y + (2 * j + 2) * hy));
-
-			y += hy;
-		}
-		x += hx;
-	}
-
-	return S * hx * hy / 9;
-}
-
-double ISimp(double x0, double xn, double e)
-{
-	int n = 1, p;
-	double x, h, So = 0, Sn = 0;
+	double h, x, In, I0 = 0, eps = 1e-4, difference;
+	double n = 2, k = 0;
 
 	do
 	{
-		n *= 2;
-		So = Sn;
-		h = (xn - x0) / n;
-		Sn = function(x0) + function(xn);
-		x = x0;
-		for (int i = 1; i < n; i++)
+		k++;
+		h = (b - a) / n;
+		In = f1(a);
+		x = a + h;
+
+		while (x < b)
 		{
-			if (i % 2 == 0) p = 2;
-			else p = 4;
+			In += 2 * f1(x);
 			x += h;
-			Sn += p * function(x);
 		}
 
-		Sn *= (h / 3);
+		In += f1(b);
+		In *= h / 2;
+		difference = fabs(In - I0);
+		I0 = In;
+		n *= 2;
+	} while (difference > 3 * eps);
 
-	} while (fabs(Sn - So) > 15 * e);
+	cout << "Количество итераций в при вычислении по формуле трапеций = " << k << endl;
 
-	cout << " e = " << e << endl;
-	cout << " n = " << n << endl;
-	cout << " R = " << fabs(Sn - So) << endl;
-	return Sn;
+	return In;
 }
 
-double ITrap(double x0, double xn, double e)
+double simpsonMethod(const double a, const double b)
 {
-	int n = 1;
-	double x, h, So = 0, Sn = 0;
+	double h, x, In, I0 = 0, eps = 1e-5, difference;
+	double n = 2;
+	int k = 0;
 
 	do
 	{
-		n *= 2;
-		So = Sn;
-		h = (xn - x0) / n;
-		Sn = function(x0) + function(xn);
-		x = x0;
-		for (int i = 1; i < n; i++)
+		k++;
+		h = (b - a) / (2 * n);
+		In = f1(a);
+		x = a + h;
+
+		while (x < b)
 		{
-			x += h;
-			Sn += 2 * function(x);
+			In += 4 * f1(x);
+			x += 2 * h;
 		}
 
-		Sn *= (h / 2);
+		x = a + 2 * h;
 
-	} while (fabs(Sn - So) > 3 * e);
+		while (x < b)
+		{
+			In += 2 * f1(x);
+			x += 2 * h;
+		}
 
-	cout << " e = " << e << endl;
-	cout << " n = " << n << endl;
-	cout << " R = " << fabs(Sn - So) << endl;
-	return Sn;
+		In += f1(b);
+		In *= h / 3;
+		difference = fabs(In - I0);
+		I0 = In;
+		n *= 2;
+	} while (difference > 15 * eps);
+
+	cout << "Количество итераций в при вычислении по формуле Симпсона = " << k << endl;
+
+	return In;
+}
+
+double f1(const double x)
+{
+	return x;
+}
+
+double f2(const double x, const double y)
+{
+	return sin(x + y);
+}
+
+double cubSimpsonMethod(const double a, const double b, const double c, const double d)
+{
+	double hx, hy, x, y, In, I0 = 0, eps = 1e-5, difference;
+	double n = 2; //количество разбиений x, y
+	int k = 0;
+
+	do
+	{
+		k++;
+		In = 0;
+		hx = (b - a) / (2 * n);
+		hy = (d - c) / (2 * n);
+		for (int i = 0; i < n; i++)
+			for (int j = 0; j < n; j++)
+			{
+				In += f2(a + 2 * i * hx, c + 2 * j * hy) 
+					+ 4 * f2(a + (2 * i + 1) * hx, c + 2 * j * hy) 
+					+ f2(a + (2 * i + 2) * hx, c + 2 * j * hy) 
+					+ 4 * f2(a + 2 * i * hx, c + (2 * j + 1) * hy) 
+					+ 16 * f2(a + (2 * i + 1) * hx, c + (2 * j + 1) * hy) 
+					+ 4 * f2(a + (2 * i + 2) * hx, c + (2 * j + 1) * hy) 
+					+ f2(a + 2 * i * hx, c + (2 * j + 2) * hy) 
+					+ 4 * f2(a + (2 * i + 1) * hx, c + (2 * j + 2) * hy) 
+					+ f2(a + (2 * i + 2) * hx, c + (2 * j + 2) * hy);
+			}
+		In *= hx * hy / 9;
+		difference = fabs(In - I0);
+		I0 = In;
+		n *= 2;
+	} while (difference > eps);
+
+	cout << "Количество итераций в при вычислении по кубатурной формуле Симпсона = " << k << endl;
+
+	return In;
 }
